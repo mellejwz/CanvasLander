@@ -1,0 +1,12 @@
+body{
+	margin: 0px;
+}
+canvas{
+	background-color: black;
+	padding: 0px;
+}
+@font-face
+{
+    font-family: lcd;
+    src: url(lcd.ttf);
+}
