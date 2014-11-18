@@ -4,9 +4,10 @@ body{
 canvas{
 	background-color: black;
 	padding: 0px;
+	margin: 0 auto;
 }
 @font-face
 {
     font-family: lcd;
-    src: url(lcd.ttf);
+    src: url(LCD.TTF);
 }

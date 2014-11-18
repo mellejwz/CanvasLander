@@ -11,8 +11,8 @@ var right=false;
 var left=false;
 
 //location and rotation of the ship
-var x=65;
-var y=100;
+var x=Math.random()*800;
+var y=500;
 var rotation=0;
 
 //initial vectors
@@ -101,9 +101,9 @@ function moveShip(){
 }
 
 function checkBounds(){
-	//ground detection and bounce
+	//ground/edge detection and bounce
 	if(y>=590){
-			if(Math.round(vector.y*10)<-5){
+			if(Math.round(vector.y*10)<-15){
 				alert('Crashed!');
 				vector.x=0;
 				vector.y=0;
@@ -117,10 +117,44 @@ function checkBounds(){
 				vector.x*=0.5;
 			}
 	}
+	else if(y<=60){
+		if(Math.round(vector.y*10)>30){
+			alert('Crashed!');
+			vector.x=0;
+			vector.y=0;
+		}
+		else{
+			y=60;
+			vector.y=-0.5;
+		}
+	}
+
+	if(x<=30){
+		if(Math.round(vector.x*10)<-30){
+			alert('Crashed!');
+			vector.x=0;
+			vector.y=0;
+		}
+		else{
+			x=30;
+			vector.x*=-0.3;
+		}
+	}
+	else if(x>=770){
+		if(Math.round(vector.x*10)>30){
+			alert('Crashed!');
+			vector.x=0;
+			vector.y=0;
+		}
+		else{
+			x=770;
+			vector.x*=-0.3;
+		}
+	}
 
 	//detect platform 1
 	if((y>250 && y<251)&&(x>320&&x<330)){
-		if(Math.round(vector.y*10)<-5){
+		if(Math.round(vector.y*10)<-10){
 			alert('Crashed!');
 			vector.x=0;
 			vector.y=0;
@@ -131,8 +165,8 @@ function checkBounds(){
 			rotation=0;
 
 			//bounce
-			vector.y*=-0.5;
-			vector.x*=0.5;
+			vector.y=0;
+			vector.x=0;
 		}
 	}
 }
@@ -140,6 +174,7 @@ function checkBounds(){
 //draw on the canvas
 function drawScene(){
 	ctx.clearRect(0, 0, 1000, 640);
+	drawHUD();
 	drawSpaceShip();
 	drawPlatforms();
 
@@ -153,6 +188,8 @@ function drawScene(){
 	if(right){
 		drawLeftFlame();
 	}
+
+	drawVector();
 }
 
 function drawStars(){
@@ -180,8 +217,6 @@ function drawSpaceShip(){
 	ctx.save();
 	ctx.translate(x, y);
 
-	drawHUD();
-
 	ctx.rotate(rotation);
 
 	//draw spaceship
@@ -194,7 +229,7 @@ function drawSpaceShip(){
 	ctx.closePath();
 
 	//draw window
-	if(Math.round(vector.y*10)>=-5){
+	if(Math.round(vector.y*10)>=-15){
 		ctx.beginPath();
 		ctx.arc(0,-5,10,0,2*Math.PI);
 		ctx.strokeStyle="#ccc";
@@ -203,7 +238,7 @@ function drawSpaceShip(){
 		ctx.fill();
 		ctx.closePath();
 	}
-	else if(Math.round(vector.y*10)<-5){
+	else if(Math.round(vector.y*10)<-15){
 		ctx.beginPath();
 		ctx.arc(0,-5,10,0,2*Math.PI);
 		ctx.strokeStyle="#cc";
@@ -300,21 +335,70 @@ function drawLeftFlame(){
 	ctx.restore();
 }
 
-function drawHUD(){
+function drawVector(){
+	ctx.save();
+	ctx.translate(x,y);
+	ctx.beginPath();
+	ctx.moveTo(0,0);
+	ctx.lineTo((vector.x*50),(-vector.y*50));
+	ctx.strokeStyle="#0b0";
+	ctx.lineWidth=2;
+	ctx.stroke();
+	//show velocity
+	ctx.fillText("Velocity: "+velocity+" m/s",vector.x*50,-vector.y*50);
+	//show current angle
+	if(angle==0){
+		ctx.fillText("Rotation: "+Math.abs(angle)+"°",vector.x*50,-vector.y*50+12);
+	}
 
-	//HUD
-		velocity = Math.round(Math.abs(Math.sqrt(Math.pow(vector.x,2)+Math.pow(vector.y,2)))*10);
+	
+	else if(angle!=0){
+
+		if(angle>0){
+			if(angle<=180){
+				ctx.fillText("Rotation: "+Math.abs(angle)+">°",vector.x*50,-vector.y*50+12);
+			}
+
+			else if(angle>180){
+				ctx.fillText("Rotation: <"+Math.abs(angle-360)+"°",vector.x*50,-vector.y*50+12);
+			}
+		}
+
+		else if(angle<-0){
+			if(angle>=-180){
+				ctx.fillText("Rotation: <"+Math.abs(angle)+"°",vector.x*50,-vector.y*50+12);
+			}
+
+			else if(angle<-180){
+				ctx.fillText("Rotation: "+Math.abs(angle+360)+">°",vector.x*50,-vector.y*50+12);
+			}
+		}
+	}
+	ctx.closePath();
+	ctx.restore();
+}
+
+function drawHUD(){
+	ctx.beginPath();
+ 	ctx.rect(800,0,200,640);
+ 	ctx.fillStyle="#fff";
+ 	ctx.fill();
+ 	ctx.closePath();
+
+ 	//HUD
+	velocity = Math.round(Math.abs(Math.sqrt(Math.pow(vector.x,2)+Math.pow(vector.y,2)))*10);
 	vSpeed=Math.round(Math.abs(vector.y)*10);
 	hSpeed=Math.round(Math.abs(vector.x)*10);
 	angle=Math.round(rotation*180/Math.PI)%360;
+	x=x;
 
-	if(Math.round(vector.y*10)>=-5){
+	if(Math.round(vector.y*10)>=-15){
 
 		//show vertical speed
 		ctx.beginPath();
 		ctx.fillStyle="#0b0";
 		ctx.font = "15px lcd";
-		ctx.fillText("Vertical speed: "+vSpeed+" m/s",60,-40);
+		ctx.fillText("Vertical speed: "+vSpeed+" m/s",820,40);
 		ctx.closePath();
 
 		//check landing safety for platform 1
@@ -324,14 +408,24 @@ function drawHUD(){
 					ctx.beginPath();
 					ctx.fillStyle="#f00";
 					ctx.font = "15px lcd";
-					ctx.fillText(">",60,-55);
+
+					ctx.save();
+					ctx.translate(x, y);
+					ctx.fillText(">",30,0);
+					ctx.restore();
+
 					ctx.closePath();
 				}
 				else if(x>330){
 					ctx.beginPath();
 					ctx.fillStyle="#f00";
 					ctx.font = "15px lcd";
-					ctx.fillText("<",60,-55);
+
+					ctx.save();
+					ctx.translate(x, y);
+					ctx.fillText("<",-30,0);
+					ctx.restore();
+
 					ctx.closePath();
 				}
 			}
@@ -339,55 +433,38 @@ function drawHUD(){
 				ctx.beginPath();
 				ctx.fillStyle="#0b0";
 				ctx.font = "15px lcd";
-				ctx.fillText("Safe to land!",60,-55);
+
+				ctx.save();
+				ctx.translate(x,y);
+				ctx.fillText("OK",30,0);
+				ctx.restore();
+
 				ctx.closePath();
 			}
 		}
 	}
 
 	//check if you're going down too fast
-	else if(Math.round(vector.y*10)<-5){
+	else if(Math.round(vector.y*10)<-15){
 		ctx.beginPath();
 		ctx.fillStyle="#f00";
 		ctx.font = "15px lcd";
-		ctx.fillText("Descent rate too high!",60,-55);
-		ctx.fillText("Vertical speed: "+vSpeed+" m/s",60,-40);
+
+		ctx.save();
+		ctx.translate(x, y);
+		ctx.fillText("Slow down!",60,0);
+		ctx.restore();
+
+		ctx.fillText("Vertical speed: "+vSpeed+" m/s",820,40);
 		ctx.closePath();	
 	}
 
 	ctx.fillStyle="#0b0";
 	ctx.font = "15px lcd";
 	//show horizontal speed
-	ctx.fillText("Horizontal speed: "+hSpeed+" m/s",60,-25);
-	//show velocity
-	ctx.fillText("Velocity: "+velocity+" m/s",60,-10);
-
-	if(angle==0){
-		ctx.fillText("Rotation: "+Math.abs(angle)+"°",60,5);
-	}
-
-	//show current angle
-	else if(angle!=0){
-
-		if(angle>0){
-			if(angle<=180){
-				ctx.fillText("Rotation: "+Math.abs(angle)+">°",60,5);
-			}
-
-			else if(angle>180){
-				ctx.fillText("Rotation: <"+Math.abs(angle-360)+"°",60,5);
-			}
-		}
-
-		else if(angle<-0){
-			if(angle>=-180){
-				ctx.fillText("Rotation: <"+Math.abs(angle)+"°",60,5);
-			}
-
-			else if(angle<-180){
-				ctx.fillText("Rotation: "+Math.abs(angle+360)+">°",60,5);
-			}
-		}
-	}
-	ctx.fillText("Height: "+Math.round(Math.abs(y-590)),60,20);
+	ctx.fillText("Horizontal speed: "+hSpeed+" m/s",820,55);
+	
+	ctx.fillText("Height: "+Math.round(Math.abs(y-590)),820,100);
+	ctx.fillText("x(debugging): "+Math.round(x),820,115);	
+	ctx.fillText("y(debugging): "+Math.round(y),820,130);
 }
